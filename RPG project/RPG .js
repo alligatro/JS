@@ -154,27 +154,34 @@ var itemsRare = loot[2];
 
 
 // Character prototype
-var Character = function (name, level){
+var Character = function (options){
 	var privateMembers = {
 		inventory : []
 	};
 	var publicMembers = {
 		name : name || "Default",
-		level : level || 1,
+		id : 0,
+		race : human,
+		type : fighter,
 		exp: 0,
+      	level : function (exp){
+          	exp = settings.exp;
+			level = settings.level = Math.floor(exp/100) + 1;
+          	return level;
+		},
 		gold: 0,
 		goldAdd : function(qty){
-				publicMembers.gold = publicMembers.gold + qty;
+				settings.gold = settings.gold + qty;
 
 
 		},
 		HitPoints : 10,
-		MaxHitPoints : 10,
+		HitPointsMax : 10,
 		TemporaryHitPoints : 0,
 		itemSlotsAvail : 100,
 		weight : 200,
 		inventoryFull : function(){
-			if (publicMembers.itemSlotsAvail <= 0){
+			if (settings.itemSlotsAvail <= 0){
 				return ("inventory full");
 			}
 		},
@@ -188,9 +195,9 @@ var Character = function (name, level){
 				if (item === undefined) {
 					return privateMembers.inventory.slice(0);
 				}
-				if (privateMembers.inventory.length < publicMembers.itemSlotsAvail){
+				if (privateMembers.inventory.length < settings.itemSlotsAvail){
 					privateMembers.inventory.push(item);
-					publicMembers.itemSlotsAvail = publicMembers.itemSlotsAvail - 1;
+					settings.itemSlotsAvail = settings.itemSlotsAvail - 1;
 					return true;
 				}
 				else {
@@ -209,15 +216,18 @@ var Character = function (name, level){
 					return false;
 				}
 
-				publicMembers.itemSlotsAvail = publicMembers.itemSlotsAvail + 1;
+				settings.itemSlotsAvail = settings.itemSlotsAvail + 1;
 				//privateMembers.inventory = privateMembers.inventory.splice(index, 1);
 				return privateMembers.inventory.splice(index, 1);
 					//return item;
 				},
 
 	};
+var settings = Object.assign({},publicMembers, options);
 
-	return publicMembers;
+return settings;
+
+
 };
 
 
@@ -244,8 +254,166 @@ Bob.inventoryRemove ();
 console.log(Bob.inventoryShow().map(item => item.name));
 
 console.log(Bob.itemSlotsAvail);
+// race selecter
 
 
+var raceSelect = function(selection) {
+		var sel = numberGen(selection);
+		
+		(sel <= 25) ? return "human";
+		(sel <= 35) ? return "elf";
+		(sel <= 45) ? return "dwarf";
+		(sel <= 65) ? return "orc";
+		(sel <= 70) ? return "dire wolf";
+		(sel <= 75) ? return "orc";
+		(sel <= 65) ? return "orc";
+		(sel <= 65) ? return "orc";
+	}
+
+
+//Character Generator function
+// enter 0 for no options
+// copy object function from Character prototype
+// name database https://gist.github.com/tkon99/4c98af713acc73bed74c
+
+// create prototypes for classes, races, etc -- ie generic orc, generic human, etc 
+//above repurposed as number gen (1-100)
+
+var numberGen = function(number){
+ 
+  	if (number >= 1){
+		return number;
+      	}
+	
+  	else{
+		number = Math.round((Math.random().toFixed(2) * (100 - 1) ) + 1);
+		return number;
+  		}
+};
+
+
+// pass in number from numberGen plus modifer - 0 for default, 1 for low level (sub 34), 2 for mid (34 - 66), 4 for high (66+) 
+var charGen = function(options){
+	
+	var publicMembers = {
+		
+	exp : numberGen(), //base
+	expM : 0, // modifier
+	
+	weight : numberGen(),
+	weightM : 2,
+	
+	gold : numberGen(),
+	goldM : 2,
+	
+	HitPointsMax : numberGen(),
+	HitPointsMaxM : 2,
+	
+	race : numberGen(),
+	raceM : 0
+	
+	
+	};
+	
+	var settings = Object.assign({},publicMembers, options);
+	
+	switch (settings.expM){
+		case 0 : settings.exp = settings.exp * 100; //all range
+		break;
+		case 1 : settings.exp = Math.round(settings.exp * 34); // low level 
+		break;
+		case 2 : settings.exp = Math.round((settings.exp * 34) + 3300); // mid level 
+		break;
+		case 3 : settings.exp = Math.round((settings.exp * 34) + 6600);// high level
+		break;
+		case 99 : settings.exp = settings.exp; 
+	
+	}
+	
+
+	switch (settings.weightM){
+		case 0 : settings.weight = settings.weight * 10; //all range
+		break;
+		case 1 : settings.weight = Math.round(settings.weight * 0.01 * 100) + 20; // super light
+		break;
+		case 2 : settings.weight = Math.round(settings.weight * 0.01 * 200) + 100; // mid
+		break;
+		case 3 : settings.weight = (settings.weight * 7) + 300;// heavy
+		break;
+		case 4 : settings.weight = (settings.weight * 50) + 1000;// super heavy
+		break;
+		case 99 : settings.weight = settings.weight; 
+	
+	}
+	
+	switch (settings.goldM){
+		case 0 : settings.gold = Math.round(settings.gold * 0.01 * 990) + 10 ; //all range
+		break;
+		case 1 : settings.gold = settings.gold + 2; // minimum
+		break;
+		case 2 : settings.gold = Math.round(settings.gold * 0.01 * 450) + 70; // mid
+		break;
+		case 3 : settings.gold = (settings.gold * 10) + 300;// rich
+		break;
+		case 4 : settings.gold = (settings.gold * 50) + 1000;// super rich
+		break;
+		case 99 : settings.gold = settings.gold; 
+	
+	}
+	
+	switch (settings.HitPointsMaxM){
+		case 0 : settings.HitPointsMax = Math.round(settings.HitPointsMax * 0.01 * 990) + 10 ; //all range
+		break;
+		case 1 : settings.HitPointsMax = Math.round(settings.HitPointsMax * 0.01 * 50) + 1; // minimum
+		break;
+		case 2 : settings.HitPointsMax = Math.round(settings.HitPointsMax * 0.01 * 500) + 50; // mid
+		break;
+		case 3 : settings.HitPointsMax = (settings.HitPointsMax * 10) + 300;// high
+		break;
+		case 4 : settings.HitPointsMax = (settings.HitPointsMax * 50) + 1000;// super high
+		break;
+		case 99 : settings.HitPointsMax = settings.HitPointsMax; 
+	
+	}
+	
+	
+	
+	switch (settings.raceM) {
+		case 0: settings.race = 
+			if ()
+	}
+
+  
+  return {exp: settings.exp, weight : settings.weight, gold : settings.gold, HitPointsMax : settings.HitPointsMax, HitPoints : settings.HitPointsMax} ;
+  
+};
+
+
+console.log(charGen());
+console.log(charGen({expM : 1, weightM : 2, goldM : 2}));
+console.log(charGen({exp : 1000, expM : 99, weightM : 4, goldM : 4}));
+
+
+ 
+ 
+ // below does not work
+ var characterGen = function(x){
+  var value = function(x){
+  	/*if (x >= 1){
+		return x;
+      	}
+	
+  	else{*/
+		var result = Math.round((Math.random().toFixed(2) * (100 - 1) ) + 1);
+		return result;
+  		//}
+  var json = ({"name" : value, "exp" : value, "gold" : value, "weight" : value});
+    JSON.stringify(json);
+    return json;
+            };
+};
+
+console.log(characterGen(0));
 
 /*
 
@@ -256,4 +424,30 @@ console.log(Bob.gold);
 Bob.goldAdd(10.7);
 
 console.log(Bob.gold);
+*/
+
+// prototype constructor with input for new objects
+
+/*
+var Character = function(options){
+var defaultSettings = {
+age : 20,
+weight : 200,
+level : 20
+};
+var settings = Object.assign({},defaultSettings, options);
+
+return settings;
+};
+
+var p = new Character();
+
+var janet = new Character({ weight: 125, level: 2 });
+
+
+
+console.log(p.age);
+console.log(janet.age);
+console.log(janet.weight);
+
 */
