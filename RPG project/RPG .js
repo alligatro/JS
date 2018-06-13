@@ -258,17 +258,33 @@ console.log(Bob.itemSlotsAvail);
 
 
 var raceSelect = function(selection) {
-		var sel = numberGen(selection);
-		
-		(sel <= 25) ? return "human";
-		(sel <= 35) ? return "elf";
-		(sel <= 45) ? return "dwarf";
-		(sel <= 65) ? return "orc";
-		(sel <= 70) ? return "dire wolf";
-		(sel <= 75) ? return "orc";
-		(sel <= 65) ? return "orc";
-		(sel <= 65) ? return "orc";
-	}
+		var output = null;
+
+		if (!selection){
+			var list = [1, 2, 3, 4, 5]
+			var weight = [0.5, 0.2, 0.2, 0.07, 0.03]
+			var output = getRandomItem(list, weight);
+			return raceSelect(output);
+		}
+		switch (selection){
+			case 1 :
+			return "humanoid";
+            break;
+						case 2 :
+			return "monster";
+            break;
+            			case 3:
+			return "animal";
+            break;
+            			case 4:
+			return "undead";
+            break;
+            			case 5:
+			return "mystical";
+		}
+
+
+};
 
 
 //Character Generator function
@@ -276,15 +292,43 @@ var raceSelect = function(selection) {
 // copy object function from Character prototype
 // name database https://gist.github.com/tkon99/4c98af713acc73bed74c
 
-// create prototypes for classes, races, etc -- ie generic orc, generic human, etc 
-//above repurposed as number gen (1-100)
+// Weighted random choice calc
+var getRandomItem = function(list, weight) {
+/*   var total_weight = weight.reduce(function (prev, cur, i, arr) {
+        return prev + cur;
+    });
+*/ // this part is not needed if sum will be 1
+    var random_num = randomGen(0, 1); // change ("1" to total_weight if it is not going to be 1)
+    var weight_sum = 0;
+    //console.log(random_num)
 
+    for (var i = 0; i < list.length; i++) {
+        weight_sum += weight[i];
+//        weight_sum = +weight_sum.toFixed(2);
+
+        if (random_num <= weight_sum) {
+            return list[i];
+        }
+    }
+
+    // end of function
+};
+
+var list = ['a', 'b', 'c', 'd']; // choices
+var weight = [0.6, 0.1, 0.2, 0.1]; weights
+var random_item = getRandomItem(list, weight);
+
+console.log(random_item); // test
+
+// create prototypes for classes, races, etc -- ie generic orc, generic human, etc
+//repurposed as number gen (1-100)
+// takes a number and checks if random - if not generates random number and returns
 var numberGen = function(number){
- 
+
   	if (number >= 1){
 		return number;
       	}
-	
+
   	else{
 		number = Math.round((Math.random().toFixed(2) * (100 - 1) ) + 1);
 		return number;
@@ -292,44 +336,55 @@ var numberGen = function(number){
 };
 
 
-// pass in number from numberGen plus modifer - 0 for default, 1 for low level (sub 34), 2 for mid (34 - 66), 4 for high (66+) 
+
+//  random number genrator
+var randomGen = function(min, max) {
+
+    return Math.random() * (max - min) + min;
+};
+
+
+// pass in number from numberGen plus modifer - 0 for default, 1 for low level (sub 34), 2 for mid (34 - 66), 4 for high (66+)
 var charGen = function(options){
-	
+
 	var publicMembers = {
-		
+
 	exp : numberGen(), //base
 	expM : 0, // modifier
-	
+
 	weight : numberGen(),
 	weightM : 2,
-	
+
 	gold : numberGen(),
 	goldM : 2,
-	
+
 	HitPointsMax : numberGen(),
 	HitPointsMaxM : 2,
-	
+
 	race : numberGen(),
-	raceM : 0
-	
-	
+	raceM : 0,
+
+	type: numberGen(),
+	typeM : 0
+
+
 	};
-	
+
 	var settings = Object.assign({},publicMembers, options);
-	
+
 	switch (settings.expM){
 		case 0 : settings.exp = settings.exp * 100; //all range
 		break;
-		case 1 : settings.exp = Math.round(settings.exp * 34); // low level 
+		case 1 : settings.exp = Math.round(settings.exp * 34); // low level
 		break;
-		case 2 : settings.exp = Math.round((settings.exp * 34) + 3300); // mid level 
+		case 2 : settings.exp = Math.round((settings.exp * 34) + 3300); // mid level
 		break;
 		case 3 : settings.exp = Math.round((settings.exp * 34) + 6600);// high level
 		break;
-		case 99 : settings.exp = settings.exp; 
-	
+		case 99 : settings.exp = settings.exp;
+
 	}
-	
+
 
 	switch (settings.weightM){
 		case 0 : settings.weight = settings.weight * 10; //all range
@@ -342,10 +397,10 @@ var charGen = function(options){
 		break;
 		case 4 : settings.weight = (settings.weight * 50) + 1000;// super heavy
 		break;
-		case 99 : settings.weight = settings.weight; 
-	
+		case 99 : settings.weight = settings.weight;
+
 	}
-	
+
 	switch (settings.goldM){
 		case 0 : settings.gold = Math.round(settings.gold * 0.01 * 990) + 10 ; //all range
 		break;
@@ -357,10 +412,10 @@ var charGen = function(options){
 		break;
 		case 4 : settings.gold = (settings.gold * 50) + 1000;// super rich
 		break;
-		case 99 : settings.gold = settings.gold; 
-	
+		case 99 : settings.gold = settings.gold;
+
 	}
-	
+
 	switch (settings.HitPointsMaxM){
 		case 0 : settings.HitPointsMax = Math.round(settings.HitPointsMax * 0.01 * 990) + 10 ; //all range
 		break;
@@ -372,20 +427,34 @@ var charGen = function(options){
 		break;
 		case 4 : settings.HitPointsMax = (settings.HitPointsMax * 50) + 1000;// super high
 		break;
-		case 99 : settings.HitPointsMax = settings.HitPointsMax; 
-	
-	}
-	
-	
-	
-	switch (settings.raceM) {
-		case 0: settings.race = 
-			if ()
+		case 99 : settings.HitPointsMax = settings.HitPointsMax;
+
 	}
 
-  
-  return {exp: settings.exp, weight : settings.weight, gold : settings.gold, HitPointsMax : settings.HitPointsMax, HitPoints : settings.HitPointsMax} ;
-  
+
+
+	switch (settings.raceM) {
+
+		case 0: settings.race = raceSelect(); // random
+		break;
+		case 1: settings.race = raceSelect(1); // humanoid
+		break;
+		case 2: settings.race = raceSelect(2); // monster
+		break;
+		case 3: settings.race = raceSelect(3); // animal
+		break;
+		case 4: settings.race = raceSelect(4); // undead
+		break;
+		case 6: settings.race = raceSelect(5); // mystical
+		break;
+
+	}
+
+
+  return {exp: settings.exp, weight : settings.weight, gold : settings.gold,
+		HitPointsMax : settings.HitPointsMax, HitPoints : settings.HitPointsMax,
+	race : settings.race, type: settings.type} ;
+
 };
 
 
@@ -394,28 +463,8 @@ console.log(charGen({expM : 1, weightM : 2, goldM : 2}));
 console.log(charGen({exp : 1000, expM : 99, weightM : 4, goldM : 4}));
 
 
- 
- 
- // below does not work
- var characterGen = function(x){
-  var value = function(x){
-  	/*if (x >= 1){
-		return x;
-      	}
-	
-  	else{*/
-		var result = Math.round((Math.random().toFixed(2) * (100 - 1) ) + 1);
-		return result;
-  		//}
-  var json = ({"name" : value, "exp" : value, "gold" : value, "weight" : value});
-    JSON.stringify(json);
-    return json;
-            };
-};
 
-console.log(characterGen(0));
 
-/*
 
 console.log("breeak");
 console.log(lootSelect(calcLoot(10,5,1), Bob));
